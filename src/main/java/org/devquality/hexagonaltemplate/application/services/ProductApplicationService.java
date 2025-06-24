@@ -8,8 +8,11 @@ import org.devquality.hexagonaltemplate.application.port.in.request.GetProductRe
 import org.devquality.hexagonaltemplate.application.port.in.request.UpdateProductRequest;
 import org.devquality.hexagonaltemplate.application.port.in.response.ProductResponse;
 import org.devquality.hexagonaltemplate.application.port.out.ProductRepository;
+import org.devquality.hexagonaltemplate.domain.Product;
+import org.springframework.stereotype.Service;
 
-public class ProductApplicationService implements CreateProductUseCase, GetProductUseCase , UpdateProductUseCase {
+@Service
+public class ProductApplicationService implements CreateProductUseCase, GetProductUseCase, UpdateProductUseCase {
 
     private final ProductRepository productRepository;
 
@@ -18,17 +21,34 @@ public class ProductApplicationService implements CreateProductUseCase, GetProdu
     }
 
     @Override
-    public ProductResponse create(CreateProductRequest product) {
-        return null;
+    public ProductResponse create(CreateProductRequest request) {
+        Product product = new Product(null, request.getName(), request.getPrice());
+
+        Product savedProduct = productRepository.save(product);
+
+        return ProductResponse.from(savedProduct);
     }
 
     @Override
-    public ProductResponse get(GetProductRequest product) {
-        return null;
+    public ProductResponse get(GetProductRequest request) {
+        Product product = productRepository.findById(request.getId())
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getId()));
+
+        return ProductResponse.from(product);
     }
 
     @Override
-    public ProductResponse update(UpdateProductRequest product) {
-        return null;
+    public ProductResponse update(UpdateProductRequest request) {
+        Product existingProduct = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getProductId()));
+
+        // Update domain object (validation happens in update methods)
+        existingProduct.updateName(request.getName());
+        existingProduct.updatePrice(request.getPrice());
+
+        // Save updated product
+        Product updatedProduct = productRepository.save(existingProduct);
+
+        return ProductResponse.from(updatedProduct);
     }
 }
