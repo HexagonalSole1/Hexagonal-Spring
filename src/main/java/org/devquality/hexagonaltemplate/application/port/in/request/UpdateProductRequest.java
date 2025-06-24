@@ -28,4 +28,4 @@ public class UpdateProductRequest {
         this.name = name;
         this.price = price;
     }
-w}
+}
